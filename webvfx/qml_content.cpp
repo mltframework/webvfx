@@ -1,5 +1,6 @@
-#include <QtDeclarative>
-#include <QGLWidget>
+#include <QQuickItem>
+#include <QQmlEngine>
+#include <QQmlContext>
 #include <QImage>
 #include <QList>
 #include <QPainter>
@@ -7,6 +8,8 @@
 #include <QSize>
 #include <QString>
 #include <QVariant>
+#include <QQuickImageProvider>
+#include <QWidget>
 #include "webvfx/image.h"
 #include "webvfx/qml_content.h"
 #include "webvfx/render_strategy.h"
@@ -16,13 +19,11 @@
 namespace WebVfx
 {
 
-static bool s_QmlContentRegistered = false;
-
-class PixmapProvider : public QDeclarativeImageProvider
+class PixmapProvider : public QQuickImageProvider
 {
  public:
      PixmapProvider(ContentContext* contentContext)
-         : QDeclarativeImageProvider(QDeclarativeImageProvider::Pixmap)
+         : QQuickImageProvider(QQuickImageProvider::Pixmap)
          , contentContext(contentContext)
      {
      }
@@ -51,35 +52,19 @@ private:
 ////////////////////
 
 QmlContent::QmlContent(const QSize& size, Parameters* parameters)
-    : QDeclarativeView(0)
+    : QQuickView(0)
     , pageLoadFinished(LoadNotFinished)
     , contextLoadFinished(LoadNotFinished)
     , contentContext(new ContentContext(this, parameters))
-    , renderStrategy(0)
 {
-    if (!s_QmlContentRegistered) {
-        s_QmlContentRegistered = true;
-        qmlRegisterType<GraphicsCaptureEffect>("org.webvfx.WebVfx", 1, 0, "Capture");
-    }
     // Add root of our qrc:/ resource path so embedded QML components are available.
     engine()->addImportPath(":/");
 
-    // Turn off scrollbars
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-    setInteractive(false);
-    setResizeMode(QDeclarativeView::SizeRootObjectToView);
-    setResizeAnchor(QDeclarativeView::AnchorViewCenter);
+    /* setInteractive(false); */
+    setResizeMode(QQuickView::SizeRootObjectToView);
+    /* setResizeAnchor(QDeclarativeView::AnchorViewCenter); */
     resize(size);
-
-    QGLWidget* glWidget = new QGLWidget();
-    setViewport(glWidget);
-
-    renderStrategy = new FBORenderStrategy(glWidget);
-
-    // OpenGL needs this
-    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    setColor(Qt::transparent);
 
     // Expose context to the QML
     rootContext()->setContextProperty("webvfx", contentContext);
@@ -87,32 +72,35 @@ QmlContent::QmlContent(const QSize& size, Parameters* parameters)
     // Register image provider for image://webvfx/<name>/<counter>
     engine()->addImageProvider(QLatin1String("webvfx"), new PixmapProvider(contentContext));
 
-    connect(this, SIGNAL(statusChanged(QDeclarativeView::Status)), SLOT(qmlViewStatusChanged(QDeclarativeView::Status)));
-    connect(engine(), SIGNAL(warnings(QList<QDeclarativeError>)), SLOT(logWarnings(QList<QDeclarativeError>)));
+    connect(this, SIGNAL(statusChanged(QQuickView::Status)), SLOT(qmlViewStatusChanged(QQuickView::Status)));
+    connect(engine(), SIGNAL(warnings(QList<QQmlError>)), SLOT(logWarnings(QList<QQmlError>)));
     connect(contentContext, SIGNAL(readyRender(bool)), SLOT(contentContextLoadFinished(bool)));
 }
 
 QmlContent::~QmlContent()
 {
-    delete renderStrategy;
 }
 
-void QmlContent::qmlViewStatusChanged(QDeclarativeView::Status status)
+void QmlContent::qmlViewStatusChanged(QQuickView::Status status)
 {
-    if (status != QDeclarativeView::Ready && status != QDeclarativeView::Error)
+    if (status != QQuickView::Ready && status != QQuickView::Error)
         return;
 
     if (pageLoadFinished == LoadNotFinished)
-        pageLoadFinished = (status == QDeclarativeView::Ready) ? LoadSucceeded : LoadFailed;
+        pageLoadFinished = (status == QQuickView::Ready) ? LoadSucceeded : LoadFailed;
 
     // This is useful when webvfx.renderReady(true) is not used.
     emit contentPreLoadFinished(pageLoadFinished == LoadSucceeded);
 
     if (pageLoadFinished == LoadFailed || contextLoadFinished != LoadNotFinished) {
-
         logWarnings(errors());
         emit contentLoadFinished(contextLoadFinished == LoadSucceeded && pageLoadFinished == LoadSucceeded);
     }
+}
+
+QWidget* QmlContent::createView(QWidget* parent)
+{
+    return QWidget::createWindowContainer(this, parent);
 }
 
 void QmlContent::contentContextLoadFinished(bool result)
@@ -125,9 +113,9 @@ void QmlContent::contentContextLoadFinished(bool result)
     }
 }
 
-void QmlContent::logWarnings(const QList<QDeclarativeError>& warnings)
+void QmlContent::logWarnings(const QList<QQmlError>& warnings)
 {
-    foreach (const QDeclarativeError& warning, warnings) {
+    foreach (const QQmlError& warning, warnings) {
         log(warning.toString());
     }
 }
@@ -141,40 +129,42 @@ void QmlContent::loadContent(const QUrl& url)
 
     setSource(url);
 
-    // XXX QDeclarativeView::SizeRootObjectToView is broken, so resize after loading
-    // https://bugreports.qt-project.org/browse/QTBUG-15863
-    setContentSize(originalSize);
+    /* grabWindow will not work until a gl context has been initialized, which does not happen until
+     * the quickwindow has been shown once */
+    show();
 }
 
-void QmlContent::setContentSize(const QSize& size) {
-    QSize oldSize(this->size());
-    if (oldSize != size) {
-        resize(size);
-        // The resize event is delayed until we are shown.
-        // Since we are never shown, send the event here.
-        // Superclass does some calculations in resizeEvent
-        // (sizing and centering the scene etc.)
-        QResizeEvent event(size, oldSize);
-        resizeEvent(&event);
-    }
+void QmlContent::setContentSize(const QSize& size)
+{
+    resize(size);
 }
 
 bool QmlContent::renderContent(double time, Image* renderImage)
 {
-    // Allow the content to render for this time
     contentContext->render(time);
-    return renderStrategy->render(this, renderImage);
-    //XXX also check errors() after each render()
+
+    if (renderImage) {
+        hide();
+        QImage sourceImage = grabWindow();
+        QImage targetImage((uchar*)renderImage->pixels(), renderImage->width(),
+                renderImage->height(), renderImage->bytesPerLine(),
+                QImage::Format_RGB888);
+        QPainter p(&targetImage);
+        p.drawImage(QPoint(), sourceImage);
+        m_mostRecentImage = sourceImage;
+    }
+    logWarnings(errors());
+    return true;
 }
 
 void QmlContent::paintContent(QPainter* painter)
 {
-    render(painter);
+    painter->drawImage(QPoint(), m_mostRecentImage);
 }
 
 void QmlContent::reload()
 {
-    engine()->clearComponentCache(); 
+    engine()->clearComponentCache();
     setSource(source());
 
 }
