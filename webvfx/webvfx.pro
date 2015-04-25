@@ -43,7 +43,7 @@ isEqual(QT_MAJOR_VERSION, 5) {
 } else {
     QT += webkit
 }
-QT += opengl declarative
+QT += opengl quick
 
 TARGET = webvfx
 

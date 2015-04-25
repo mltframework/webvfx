@@ -20,7 +20,7 @@ isEqual(QT_MAJOR_VERSION, 5) {
 } else {
     QT += webkit
 }
-QT += declarative
+QT += quick
 
 !mac:TARGET = webvfx_viewer
 mac:TARGET = "WebVfx Viewer"
