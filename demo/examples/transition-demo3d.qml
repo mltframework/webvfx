@@ -1,3 +1,6 @@
+// IMPORTANT: This example is very old and out-of-date, and it is not trivial
+// to port to Qt3D 2.0. You are on your own to figure out how to use Qt3D.
+
 import Qt 4.7
 import Qt3D 1.0
 import org.webvfx.WebVfx 1.0
