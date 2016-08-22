@@ -37,7 +37,7 @@ macx:isEqual(QT_MAJOR_VERSION, 5) {
     PKGCONFIG += mlt-framework
 }
 win32 {
-    QT += opengl declarative
+    QT += opengl quick
     isEqual(QT_MAJOR_VERSION, 5) {
         QT += webkitwidgets
     } else {
