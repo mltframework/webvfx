@@ -84,9 +84,11 @@ bool EffectsImpl::initialize(const QString& fileName, int width, int height, Par
 
 void EffectsImpl::initializeComplete(bool result)
 {
-    QMutexLocker locker(mutex);
-    initializeResult = result;
-    waitCondition->wakeAll();
+    if (mutex && waitCondition) {
+        QMutexLocker locker(mutex);
+        initializeResult = result;
+        waitCondition->wakeAll();
+    }
 }
 
 void EffectsImpl::destroy()
