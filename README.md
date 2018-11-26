@@ -13,7 +13,15 @@ WebVfx includes an MLT service that exposes producers, filters and transitions i
 
 In the webvfx directory run `qmake -r PREFIX=/usr/local` and then `make install`. `PREFIX` determines where WebVfx will be installed. If MLT is installed in a non-standard location, you may need to set the `PKG_CONFIG_PATH` environment variable to where its pkgconfig file lives, e.g. `PKG_CONFIG_PATH=/usr/local/lib/pkgconfig`.
 
-The [MLT melt](https://www.mltframework.org/twiki/bin/view/MLT/MltMelt) command will not work with WebVfx on Windows or OS X because the Qt event loop must run on the main thread. If you set `MLT_SOURCE` to the root of your MLT source code directory, then a `qmelt` executable will be installed which behaves the same as `melt` but works with WebVfx on Windows or OS X. e.g. `qmake -r PREFIX=/usr/local MLT_SOURCE=~/Projects/mlt`.
+The [MLT melt](https://www.mltframework.org/twiki/bin/view/MLT/MltMelt) command
+will not work with WebVfx on Windows or macOS because the Qt event loop must run
+on the main thread. If you set `MLT_SOURCE` to the root of your MLT source code
+directory, then a `qmelt` executable will be installed which behaves the same as
+`melt` but works with WebVfx on Windows or macOS. e.g. `qmake -r
+PREFIX=/usr/local MLT_SOURCE=~/Projects/mlt`.
+The MLT source is available as a git submodule to make this more convenient. If
+you checkout the git submodule, then it is detected and there is no need to set
+MLT_SOURCE.
 
 `make doxydoc` to generate the documentation using Doxygen.
 You can also `make uninstall`, `make clean` and `make distclean`.

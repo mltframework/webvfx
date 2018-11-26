@@ -1,0 +1,3 @@
+[submodule "mlt/qmelt/mlt"]
+	path = mlt/qmelt/mlt
+	url = ../mlt.git

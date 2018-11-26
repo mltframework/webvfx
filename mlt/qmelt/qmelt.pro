@@ -1,8 +1,8 @@
+include(../../common.pri)
 isEmpty(MLT_SOURCE) {
     error("qmelt can only be built when MLT_SOURCE is set to the MLT source code directory.")
 }
 
-include(../../common.pri)
 TEMPLATE = app
 
 SOURCES += qmelt.cpp

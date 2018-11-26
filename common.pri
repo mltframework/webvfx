@@ -20,3 +20,7 @@ RCC_DIR = $$DESTDIR/.rcc/$$TARGET
 UI_DIR = $$DESTDIR/.ui/$$TARGET
 
 INCLUDEPATH += $$PWD
+
+exists(mlt/qmelt/mlt/README) {
+    MLT_SOURCE = mlt
+}
