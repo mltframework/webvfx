@@ -24,7 +24,7 @@ static int filterGetImage(mlt_frame frame, uint8_t **image, mlt_image_format *fo
     mlt_position length = mlt_filter_get_length2(filter, frame);
 
     // Get the source image, we will also write our output to it
-    *format = mlt_image_rgb24;
+    *format = mlt_image_rgb24a;
     if ((error = mlt_frame_get_image(frame, image, format, width, height, 1)) != 0)
         return error;
 
@@ -33,9 +33,10 @@ static int filterGetImage(mlt_frame frame, uint8_t **image, mlt_image_format *fo
         if (!locker.initialize(*width, *height))
             return 1;
 
+        bool hasAlpha = (*format == mlt_image_rgb24a);
+        int size = *width * *height * (hasAlpha? 4 : 3);
+        WebVfx::Image renderedImage(*image, *width, *height, size, hasAlpha);
         MLTWebVfx::ServiceManager* manager = locker.getManager();
-        WebVfx::Image renderedImage(*image, *width, *height,
-                                    *width * *height * WebVfx::Image::BytesPerPixel);
         manager->setImageForName(manager->getSourceImageName(), &renderedImage);
         manager->setupConsumerListener(frame);
 
@@ -46,7 +47,7 @@ static int filterGetImage(mlt_frame frame, uint8_t **image, mlt_image_format *fo
         mlt_consumer consumer = static_cast<mlt_consumer>(
             mlt_properties_get_data(MLT_FRAME_PROPERTIES(frame), "consumer", NULL));
         if (!consumer || !mlt_consumer_is_stopped(consumer))
-            manager->render(&renderedImage, position, length);
+            manager->render(&renderedImage, position, length, hasAlpha);
     }
 
     return error;

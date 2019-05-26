@@ -140,7 +140,9 @@ bool ServiceManager::initialize(int width, int height)
         mlt_log(service, MLT_LOG_ERROR, "No 'resource' property found\n");
         return false;
     }
-    bool isTransparent = mlt_properties_get_int(properties, "transparent") || mlt_service_identify(service) == filter_type;
+    bool isTransparent = mlt_properties_get_int(properties, "transparent") ||
+            mlt_service_identify(service) == filter_type ||
+            mlt_service_identify(service) == transition_type ;
     parameters = new ServiceParameters(service);
     effects = WebVfx::createEffects(fileName, width, height,
                                     parameters, isTransparent);

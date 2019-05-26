@@ -12,7 +12,7 @@ namespace WebVfx
  * @brief Lightweight class for passing around a reference to a buffer of
  * raw image data.
  *
- * Image is a wrapper around a buffer of RGB image data,
+ * Image is a wrapper around a buffer of RGB(A) image data,
  * along with metadata about it (width, height, bytes per row etc.).
  * The underlying image data buffer is not owned by Image and
  * its lifetime must exceed that of the referencing Image instance.
@@ -20,7 +20,7 @@ namespace WebVfx
 class Image
 {
 public:
-    //! Number of bytes per pixel.
+    //! @deprecated Number of bytes per pixel.
     static const int BytesPerPixel = 3;
 
     Image()
@@ -31,7 +31,7 @@ public:
 	, hasAlpha_(false) {}
 
     /*!
-     * @param pixels 24 bit RGB image data. Must be valid for the lifetime
+     * @param pixels 24-bit RGB or 32-bit RGBA image data. Must be valid for the lifetime
      * of the Image.
      * @param width Width of the image in pixels
      * @param height Height of the image in pixels

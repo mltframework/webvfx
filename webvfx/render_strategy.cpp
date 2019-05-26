@@ -175,34 +175,17 @@ bool ImageRenderStrategy::render(Content* content, Image* renderImage)
 {
     if (!renderImage || !renderImage->pixels() || !renderImage->width() || !renderImage->height())
         return false;
-    if ( renderImage->hasAlpha() ) {
-        // we need to swap r and b channels
-        QImage image(renderImage->width(), renderImage->height(), QImage::Format_ARGB32);
-        image.fill(Qt::transparent);
-        // Paint into image
-        QPainter painter(&image);
-        painter.setRenderHints(QPainter::Antialiasing |
+    // QImage referencing our Image bits
+    QImage image((uchar*)renderImage->pixels(), renderImage->width(),
+                 renderImage->height(), renderImage->bytesPerLine(),
+                  renderImage->hasAlpha()? QImage::Format_RGBA8888 : QImage::Format_RGB888);
+    // Paint into image
+    QPainter painter(&image);
+    painter.setRenderHints(QPainter::Antialiasing |
                            QPainter::TextAntialiasing |
                            QPainter::SmoothPixmapTransform, true);
-        content->paintContent(&painter);
-        painter.end();
-        QImage swapped = image.rgbSwapped();
-        WebVfx::Image sourceImage(const_cast<uchar*>(swapped.constBits()),
-            swapped.width(), swapped.height(), swapped.byteCount(), swapped.hasAlphaChannel());
-        renderImage->copyPixelsFrom(sourceImage);
-    } else {
-        // QImage referencing our Image bits
-        QImage image((uchar*)renderImage->pixels(), renderImage->width(),
-                     renderImage->height(), renderImage->bytesPerLine(),
-                     QImage::Format_RGB888);
-        // Paint into image
-        QPainter painter(&image);
-        painter.setRenderHints(QPainter::Antialiasing |
-                               QPainter::TextAntialiasing |
-                               QPainter::SmoothPixmapTransform, true);
-        content->paintContent(&painter);
-        painter.end();
-    }
+    content->paintContent(&painter);
+    painter.end();
     return true;
 }
 

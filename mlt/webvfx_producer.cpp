@@ -22,7 +22,7 @@ static int producerGetImage(mlt_frame frame, uint8_t **buffer, mlt_image_format 
     mlt_properties producer_props = MLT_PRODUCER_PROPERTIES(producer);
     int size;
     int bpp;
-    bool hasTransparency = false;
+    bool hasAlpha = false;
     {
         MLTWebVfx::ServiceLocker locker(MLT_PRODUCER_SERVICE(producer));
         if (!locker.initialize(*width, *height))
@@ -30,7 +30,7 @@ static int producerGetImage(mlt_frame frame, uint8_t **buffer, mlt_image_format 
 
         if (mlt_properties_get_int( producer_props, "transparent") ) {
             *format = mlt_image_rgb24a;
-            hasTransparency = true;
+            hasAlpha = true;
         }
         else {
             *format = mlt_image_rgb24;
@@ -40,10 +40,15 @@ static int producerGetImage(mlt_frame frame, uint8_t **buffer, mlt_image_format 
         *buffer = (uint8_t*)mlt_pool_alloc(size);
         mlt_frame_set_image(frame, *buffer, size, mlt_pool_release);
 
-        // When not using transparency, this will make the background white.
+        // Make the background white.
         memset(*buffer, 255, size);
         size = *width * *height * bpp;
-        WebVfx::Image outputImage(*buffer, *width, *height, size, hasTransparency);
+        if (hasAlpha) {
+            // Make the background transparent.
+            for (int i = 0; i < *width * *height; i++)
+                (*buffer)[4 * i + 3] = 0;
+        }
+        WebVfx::Image outputImage(*buffer, *width, *height, size, hasAlpha);
         locker.getManager()->setupConsumerListener(frame);
 
         // If there is a consumer set on the frame and the consumer is stopped,
@@ -55,15 +60,7 @@ static int producerGetImage(mlt_frame frame, uint8_t **buffer, mlt_image_format 
         if (!consumer || !mlt_consumer_is_stopped(consumer))
             locker.getManager()->render(&outputImage,
                                         mlt_properties_get_position(properties, kWebVfxPositionPropertyName),
-                                        mlt_producer_get_length(producer), hasTransparency);
-    }
-    if (hasTransparency) {
-        // Create the alpha channel
-        int alpha_size = *width * *height;
-        uint8_t *alpha = (uint8_t *)mlt_pool_alloc( alpha_size );
-        // Initialise the alpha
-        memset( alpha, 255, alpha_size );
-        mlt_frame_set_alpha(frame, alpha, alpha_size, mlt_pool_release);
+                                        mlt_producer_get_length(producer), hasAlpha);
     }
     mlt_properties_set_int(properties, "meta.media.width", *width);
     mlt_properties_set_int(properties, "meta.media.height", *height);

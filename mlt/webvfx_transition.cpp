@@ -39,12 +39,13 @@ static int transitionGetImage(mlt_frame aFrame, uint8_t **image, mlt_image_forma
         if (!locker.initialize(*width, *height))
             return 1;
 
+        bool hasAlpha = (*format == mlt_image_rgb24a);
+        int size = *width * *height * (hasAlpha? 4 : 3);
         MLTWebVfx::ServiceManager* manager = locker.getManager();
-        WebVfx::Image renderedImage(*image, *width, *height,
-                                    *width * *height * WebVfx::Image::BytesPerPixel);
+        WebVfx::Image renderedImage(*image, *width, *height, size, hasAlpha);
         manager->setImageForName(manager->getSourceImageName(), &renderedImage);
-        WebVfx::Image targetImage(bImage, bWidth, bHeight,
-                                  bWidth * bHeight * WebVfx::Image::BytesPerPixel);
+        size = bWidth * bHeight * (hasAlpha? 4 : 3);
+        WebVfx::Image targetImage(bImage, bWidth, bHeight, size, hasAlpha);
         manager->setImageForName(manager->getTargetImageName(), &targetImage);
         manager->setupConsumerListener(aFrame);
 

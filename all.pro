@@ -8,6 +8,11 @@ isEmpty(PREFIX) {
 isEqual(QT_MAJOR_VERSION, 5):cache()
 include(common.pri)
 
+!minQtVersion(5, 2, 0) {
+    message("Cannot build WebVfx with Qt version $${QT_VERSION}.")
+    error("Use at least Qt 5.2.0.")
+}
+
 TEMPLATE = subdirs
 CONFIG += ordered
 

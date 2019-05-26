@@ -34,7 +34,7 @@ void ContentContext::setImage(const QString& name, Image* image)
     // Create a QImage wrapper for the image data
     QImage qimage((uchar*)image->pixels(),
                   image->width(), image->height(),
-                  image->bytesPerLine(), image->hasAlpha() ? QImage::Format_ARGB32_Premultiplied : QImage::Format_RGB888);
+                  image->bytesPerLine(), image->hasAlpha() ? QImage::Format_RGBA8888 : QImage::Format_RGB888);
     imageMap.insert(name, qimage);
 }
 
