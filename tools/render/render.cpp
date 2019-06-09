@@ -125,6 +125,27 @@ int main(int argc, char* argv[]) {
         double getNumberParameter(const QString& name) {
             return map[name].toDouble();
         }
+        QVariantMap getRectParameter(const QString& name) {
+            QStringList parts = map[name].split(' ');
+            QVariantMap map;
+            int i = 0;
+            if (parts.size() > i) {
+                map["x"] = parts[i++].toDouble();
+                if (parts.size() > i) {
+                    map["y"] = parts[i++].toDouble();
+                    if (parts.size() > i) {
+                        map["width"] = parts[i++].toDouble();
+                        if (parts.size() > i) {
+                            map["height"] = parts[i++].toDouble();
+                            if (parts.size() > i) {
+                                map["opacity"] = parts[i++].toDouble();
+                            }
+                        }
+                    }
+                }
+            }
+            return map;
+        }
     private:
         std::map<const QString, const QString>& map;
     };

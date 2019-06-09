@@ -10,12 +10,11 @@
 #include <QMap>
 #include <QObject>
 #include <QUrl>
+#include <QVariantMap>
 #include "webvfx/effects.h"
 
 class QSize;
 class QString;
-class QVariant;
-typedef QMap<QString, QVariant> QVariantMap;
 
 namespace WebVfx
 {
@@ -55,6 +54,7 @@ public:
     // JS: var title = webvfx.getStringParameter("title");
     Q_INVOKABLE double getNumberParameter(const QString& name);
     Q_INVOKABLE QString getStringParameter(const QString& name);
+    Q_INVOKABLE QVariantMap getRectParameter(const QString& name);
 
     // Page contents can retrieve named images.
     // JS:

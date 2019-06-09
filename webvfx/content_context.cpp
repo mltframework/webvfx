@@ -54,6 +54,14 @@ QString ContentContext::getStringParameter(const QString& name)
         return QString();
 }
 
+QVariantMap ContentContext::getRectParameter(const QString& name)
+{
+    if (parameters)
+        return parameters->getRectParameter(name);
+    else
+        return QVariantMap();
+}
+
 void ContentContext::setImageTypeMap(const QVariantMap& variantMap)
 {
     // Convert QVariantMap to ImageTypeMap

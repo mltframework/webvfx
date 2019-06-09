@@ -5,6 +5,7 @@
 #ifndef WEBVFX_PARAMETERS_H_
 #define WEBVFX_PARAMETERS_H_
 
+#include <QVariantMap>
 
 class QString;
 
@@ -34,6 +35,18 @@ public:
      * @param name Parameter name
      */
     virtual QString getStringParameter(const QString& name);
+    /*!
+     * @brief Return a rectangle value for parameter @c name.
+     *
+     * Rectangle is a map of doubles with the following keys:
+     * - x
+     * - y
+     * - width
+     * - height
+     * - opacity
+     * @param name Parameter name
+     */
+    virtual QVariantMap getRectParameter(const QString& name);
 };
 
 }

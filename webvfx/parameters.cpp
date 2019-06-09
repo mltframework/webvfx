@@ -14,3 +14,8 @@ QString WebVfx::Parameters::getStringParameter(const QString&)
 {
     return QString();
 }
+
+QVariantMap WebVfx::Parameters::getRectParameter(const QString&)
+{
+    return QVariantMap();
+}

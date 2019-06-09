@@ -11,6 +11,7 @@ extern "C" {
     #include <mlt/framework/mlt_consumer.h>
 }
 #include "service_manager.h"
+#include <QVariantMap>
 
 namespace MLTWebVfx
 {
@@ -33,6 +34,17 @@ public:
 
     QString getStringParameter(const QString& name) {
         return QString::fromUtf8(mlt_properties_anim_get(properties, name.toLatin1().constData(), position, length));
+    }
+
+    QVariantMap getRectParameter(const QString& name) {
+        mlt_rect rect = mlt_properties_anim_get_rect(properties, name.toLatin1().constData(), position, length);
+        QVariantMap map;
+        map["x"] = rect.x;
+        map["y"] = rect.y;
+        map["width"] = rect.w;
+        map["height"] = rect.h;
+        map["opacity"] = rect.o;
+        return map;
     }
 
     void setPositionAndLength(mlt_position newPosition, mlt_position newLength)
