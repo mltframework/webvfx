@@ -34,6 +34,7 @@ public:
     bool renderContent(double time, Image* renderImage);
     void paintContent(QPainter* painter);
     void setImage(const QString& name, Image* image) { contentContext->setImage(name, image); }
+    void setZoom(const qreal zoom);
     void reload();
 
     QWidget* createView(QWidget* parent);
@@ -53,6 +54,7 @@ private:
     LoadStatus contextLoadFinished;
     ContentContext* contentContext;
     QImage m_mostRecentImage;
+    qreal m_zoom;
 };
 
 }

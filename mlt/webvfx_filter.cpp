@@ -20,9 +20,27 @@ static int filterGetImage(mlt_frame frame, uint8_t **image, mlt_image_format *fo
 
     // Get the filter
     mlt_filter filter = (mlt_filter)mlt_frame_pop_service(frame);
-
+    mlt_properties properties = MLT_FILTER_PROPERTIES(filter);
     mlt_position position = mlt_filter_get_position(filter, frame);
     mlt_position length = mlt_filter_get_length2(filter, frame);
+
+    // If not a plain resource, then disable preview scaling.
+    const char* resource = mlt_properties_get(properties, "resource");
+    int use_preview_scale = mlt_properties_get_int(properties, "mlt_resolution_scale");
+    if (!use_preview_scale && resource) {
+        mlt_profile profile = mlt_service_profile(MLT_FILTER_SERVICE(filter));
+        std::string resource2(resource);
+        std::string plain = "plain:";
+        if (profile && resource2.substr(0, plain.size()) != plain) {
+            *width = profile->width;
+            *height = profile->height;
+            mlt_properties_set_double(MLT_FRAME_PROPERTIES(frame), "consumer_scale", 1.0);
+        }
+    }
+
+    // Make a mlt_frame_resolution_scale filter property available for scripts.
+    double scale = mlt_frame_resolution_scale(frame);
+    mlt_properties_set_double(properties, "mlt_frame_resolution_scale", scale);
 
     // Get the source image, we will also write our output to it
     *format = mlt_image_rgb24a;
@@ -39,7 +57,7 @@ static int filterGetImage(mlt_frame frame, uint8_t **image, mlt_image_format *fo
         std::unique_ptr<WebVfx::Image> renderedImage;
         uint8_t* buffer = nullptr;
         
-        if (mlt_properties_get_int(MLT_FILTER_PROPERTIES(filter), "transparent")) {
+        if (mlt_properties_get_int(properties, "transparent")) {
             int size = mlt_image_format_size(*format, *width, *height, NULL);
             // Create a new buffer for the source image.
             buffer = (uint8_t*) mlt_pool_alloc(size);
@@ -69,7 +87,7 @@ static int filterGetImage(mlt_frame frame, uint8_t **image, mlt_image_format *fo
         mlt_consumer consumer = static_cast<mlt_consumer>(
             mlt_properties_get_data(MLT_FRAME_PROPERTIES(frame), "consumer", NULL));
         if (!consumer || !mlt_consumer_is_stopped(consumer))
-            manager->render(renderedImage.get(), position, length, hasAlpha);
+            manager->render(renderedImage.get(), position, length, scale, hasAlpha);
         mlt_pool_release(buffer);
     }
 

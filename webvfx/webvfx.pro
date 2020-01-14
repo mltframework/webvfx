@@ -4,7 +4,7 @@
 
 include(../common.pri)
 TEMPLATE = lib
-VERSION = 1.1.0
+VERSION = 1.2.0
 
 HEADERS += content.h
 HEADERS += content_context.h

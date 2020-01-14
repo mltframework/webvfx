@@ -113,6 +113,11 @@ void EffectsImpl::setImage(const QString& name, Image* image)
     content->setImage(name, image);
 }
 
+void EffectsImpl::setZoom(const qreal zoom)
+{
+    content->setZoom(zoom);
+}
+
 bool EffectsImpl::render(double time, Image* renderImage)
 {
     if (onUIThread()) {

@@ -23,6 +23,25 @@ static int producerGetImage(mlt_frame frame, uint8_t **buffer, mlt_image_format 
     int size;
     int bpp;
     bool hasAlpha = false;
+
+    // If not a plain resource, then disable preview scaling.
+    const char* resource = mlt_properties_get(producer_props, "resource");
+    int use_preview_scale = mlt_properties_get_int(producer_props, "mlt_resolution_scale");
+    if (!use_preview_scale && resource) {
+        mlt_profile profile = mlt_service_profile(MLT_PRODUCER_SERVICE(producer));
+        std::string resource2(resource);
+        std::string plain = "plain:";
+        if (profile && resource2.substr(0, plain.size()) != plain) {
+            *width = profile->width;
+            *height = profile->height;
+            mlt_properties_set_double(properties, "consumer_scale", 1.0);
+        }
+    }
+
+    // Make a mlt_frame_resolution_scale filter property available for scripts.
+    double scale = mlt_frame_resolution_scale(frame);
+    mlt_properties_set_double(producer_props, "mlt_frame_resolution_scale", scale);
+
     {
         MLTWebVfx::ServiceLocker locker(MLT_PRODUCER_SERVICE(producer));
         if (!locker.initialize(*width, *height))
@@ -57,10 +76,13 @@ static int producerGetImage(mlt_frame frame, uint8_t **buffer, mlt_image_format 
         // ServiceManager::onConsumerStopping() and Effects::renderComplete().
         mlt_consumer consumer = static_cast<mlt_consumer>(
             mlt_properties_get_data(MLT_FRAME_PROPERTIES(frame), "consumer", NULL));
-        if (!consumer || !mlt_consumer_is_stopped(consumer))
+        if (!consumer || !mlt_consumer_is_stopped(consumer)) {
             locker.getManager()->render(&outputImage,
                                         mlt_properties_get_position(properties, kWebVfxPositionPropertyName),
-                                        mlt_producer_get_length(producer), hasAlpha);
+                                        mlt_producer_get_length(producer),
+                                        mlt_frame_resolution_scale(frame),
+                                        hasAlpha);
+        }
     }
     mlt_properties_set_int(properties, "meta.media.width", *width);
     mlt_properties_set_int(properties, "meta.media.height", *height);

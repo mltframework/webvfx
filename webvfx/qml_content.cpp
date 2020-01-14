@@ -56,6 +56,7 @@ QmlContent::QmlContent(const QSize& size, Parameters* parameters)
     , pageLoadFinished(LoadNotFinished)
     , contextLoadFinished(LoadNotFinished)
     , contentContext(new ContentContext(this, parameters))
+    , m_zoom(1.0)
 {
     // Add root of our qrc:/ resource path so embedded QML components are available.
     engine()->addImportPath(":/");
@@ -134,7 +135,10 @@ void QmlContent::loadContent(const QUrl& url)
 
 void QmlContent::setContentSize(const QSize& size)
 {
-    resize(size);
+    if (m_zoom > 0.0)
+        resize(size.width() / m_zoom, size.height() / m_zoom);
+    else
+        resize(size);
 }
 
 bool QmlContent::renderContent(double time, Image* renderImage)
@@ -160,11 +164,19 @@ void QmlContent::paintContent(QPainter* painter)
     painter->drawImage(QPoint(), m_mostRecentImage);
 }
 
+void QmlContent::setZoom(const qreal zoom)
+{
+    if (rootObject()) {
+        rootObject()->setTransformOrigin(QQuickItem::TopLeft);
+        rootObject()->setScale(zoom);
+        m_zoom = zoom;
+    }
+}
+
 void QmlContent::reload()
 {
     engine()->clearComponentCache();
     setSource(source());
-
 }
 
 }

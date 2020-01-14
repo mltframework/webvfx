@@ -234,7 +234,8 @@ static void consumerStoppingListener(mlt_properties owner, ServiceManager* self)
     self->onConsumerStopping();
 }
 
-int ServiceManager::render(WebVfx::Image* outputImage, mlt_position position, mlt_position length, bool hasAlpha)
+int ServiceManager::render(WebVfx::Image* outputImage, mlt_position position,
+    mlt_position length, double zoom, bool hasAlpha)
 {
     double time = length > 0 ? position / (double)length : 0;
 
@@ -264,6 +265,7 @@ int ServiceManager::render(WebVfx::Image* outputImage, mlt_position position, ml
             }
         }
     }
+    effects->setZoom(zoom);
 
     return !effects->render(time, outputImage);
 }

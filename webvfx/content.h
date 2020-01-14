@@ -29,6 +29,7 @@ public:
     virtual void setContentSize(const QSize& size) = 0;
     virtual const Effects::ImageTypeMap& getImageTypeMap() = 0;
     virtual void setImage(const QString& name, Image* image) = 0;
+    virtual void setZoom(const qreal zoom) = 0;
     virtual bool renderContent(double time, Image* renderImage) = 0;
     virtual void paintContent(QPainter* painter) = 0;
 

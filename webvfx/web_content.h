@@ -48,6 +48,7 @@ public:
     bool renderContent(double time, Image* renderImage);
     void paintContent(QPainter* painter);
     void setImage(const QString& name, Image* image) { contentContext->setImage(name, image); }
+    void setZoom(const qreal zoom);
 
     QWidget* createView(QWidget* parent);
     void reload();

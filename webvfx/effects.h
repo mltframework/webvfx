@@ -66,6 +66,13 @@ public:
     virtual void setImage(const QString& name, Image* image) = 0;
 
     /*!
+     * @brief Set the zoom level.
+     *
+     * @param zoom the zoom factor
+     */
+    virtual void setZoom(const qreal zoom) = 0;
+
+    /*!
      * @brief Renders the effect for the given @c time.
      *
      * Prior to calling render() each time, all named images must

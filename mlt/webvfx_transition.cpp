@@ -20,9 +20,28 @@ static int transitionGetImage(mlt_frame aFrame, uint8_t **image, mlt_image_forma
 
     mlt_frame bFrame = mlt_frame_pop_frame(aFrame);
     mlt_transition transition = (mlt_transition)mlt_frame_pop_service(aFrame);
+    mlt_properties properties = MLT_TRANSITION_PROPERTIES(transition);
 
     mlt_position position = mlt_transition_get_position(transition, aFrame);
     mlt_position length = mlt_transition_get_length(transition);
+
+    // If not a plain resource, then disable preview scaling.
+    const char* resource = mlt_properties_get(properties, "resource");
+    int use_preview_scale = mlt_properties_get_int(properties, "mlt_resolution_scale");
+    if (!use_preview_scale && resource) {
+        mlt_profile profile = mlt_service_profile(MLT_TRANSITION_SERVICE(transition));
+        std::string resource2(resource);
+        std::string plain = "plain:";
+        if (profile && resource2.substr(0, plain.size()) != plain) {
+            *width = profile->width;
+            *height = profile->height;
+            mlt_properties_set_double(MLT_FRAME_PROPERTIES(aFrame), "consumer_scale", 1.0);
+        }
+    }
+
+    // Make a mlt_frame_resolution_scale filter property available for scripts.
+    double scale = mlt_frame_resolution_scale(aFrame);
+    mlt_properties_set_double(properties, "mlt_frame_resolution_scale", scale);
 
     // Get the aFrame image, we will write our output to it
     *format = mlt_image_rgb24;
@@ -55,8 +74,11 @@ static int transitionGetImage(mlt_frame aFrame, uint8_t **image, mlt_image_forma
         // ServiceManager::onConsumerStopping() and Effects::renderComplete().
         mlt_consumer consumer = static_cast<mlt_consumer>(
             mlt_properties_get_data(MLT_FRAME_PROPERTIES(aFrame), "consumer", NULL));
-        if (!consumer || !mlt_consumer_is_stopped(consumer))
-            manager->render(&renderedImage, position, length);
+        if (!consumer || !mlt_consumer_is_stopped(consumer)) {
+            manager->render(&renderedImage,
+                            position, length,
+                            mlt_frame_resolution_scale(aFrame));
+        }
     }
 
     return error;

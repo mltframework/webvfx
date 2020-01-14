@@ -170,6 +170,11 @@ void WebContent::paintContent(QPainter* painter)
     webPage->mainFrame()->render(painter);
 }
 
+void WebContent::setZoom(const qreal zoom)
+{
+    webPage->mainFrame()->setZoomFactor(zoom);
+}
+
 QWidget* WebContent::createView(QWidget* parent)
 {
 #ifdef WEBVFX_GRAPHICSVIEW

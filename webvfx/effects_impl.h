@@ -31,6 +31,7 @@ public:
     bool initialize(const QString& fileName, int width, int height, Parameters* parameters = 0, bool isTransparent = false);
     const ImageTypeMap& getImageTypeMap();
     void setImage(const QString& name, Image* image);
+    void setZoom(const qreal zoom);
     bool render(double time, Image* renderImage);
     void destroy();
     void renderComplete(bool result);
