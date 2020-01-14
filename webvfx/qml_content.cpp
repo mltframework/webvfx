@@ -125,8 +125,6 @@ void QmlContent::loadContent(const QUrl& url)
     pageLoadFinished = LoadNotFinished;
     contextLoadFinished = LoadNotFinished;
 
-    QSize originalSize(size());
-
     setSource(url);
 
     /* grabWindow will not work until a gl context has been initialized, which does not happen until
@@ -148,7 +146,7 @@ bool QmlContent::renderContent(double time, Image* renderImage)
         QImage sourceImage = grabWindow();
         QImage targetImage((uchar*)renderImage->pixels(), renderImage->width(),
                 renderImage->height(), renderImage->bytesPerLine(),
-                QImage::Format_RGB888);
+                renderImage->hasAlpha()? QImage::Format_RGBA8888 : QImage::Format_RGB888);
         QPainter p(&targetImage);
         p.drawImage(QPoint(), sourceImage);
         m_mostRecentImage = sourceImage;
