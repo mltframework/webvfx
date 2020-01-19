@@ -34,13 +34,15 @@ static int producerGetImage(mlt_frame frame, uint8_t **buffer, mlt_image_format 
         if (profile && resource2.substr(0, plain.size()) != plain) {
             *width = profile->width;
             *height = profile->height;
-            mlt_properties_set_double(properties, "consumer_scale", 1.0);
         }
     }
 
-    // Make a mlt_frame_resolution_scale filter property available for scripts.
-    double scale = mlt_frame_resolution_scale(frame);
-    mlt_properties_set_double(producer_props, "mlt_frame_resolution_scale", scale);
+    // Add mlt_profile_scale_width and mlt_profile_scale_height properties for scripts.
+    mlt_profile profile = mlt_service_profile(MLT_PRODUCER_SERVICE(producer));
+    double scale = mlt_profile_scale_width(profile, *width);
+    mlt_properties_set_double(properties, "mlt_profile_scale_width", scale);
+    mlt_properties_set_double(properties, "mlt_profile_scale_height",
+                              mlt_profile_scale_height(profile, *height));
 
     {
         MLTWebVfx::ServiceLocker locker(MLT_PRODUCER_SERVICE(producer));
@@ -80,7 +82,7 @@ static int producerGetImage(mlt_frame frame, uint8_t **buffer, mlt_image_format 
             locker.getManager()->render(&outputImage,
                                         mlt_properties_get_position(properties, kWebVfxPositionPropertyName),
                                         mlt_producer_get_length(producer),
-                                        mlt_frame_resolution_scale(frame),
+                                        scale,
                                         hasAlpha);
         }
     }

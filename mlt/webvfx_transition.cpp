@@ -35,13 +35,8 @@ static int transitionGetImage(mlt_frame aFrame, uint8_t **image, mlt_image_forma
         if (profile && resource2.substr(0, plain.size()) != plain) {
             *width = profile->width;
             *height = profile->height;
-            mlt_properties_set_double(MLT_FRAME_PROPERTIES(aFrame), "consumer_scale", 1.0);
         }
     }
-
-    // Make a mlt_frame_resolution_scale filter property available for scripts.
-    double scale = mlt_frame_resolution_scale(aFrame);
-    mlt_properties_set_double(properties, "mlt_frame_resolution_scale", scale);
 
     // Get the aFrame image, we will write our output to it
     *format = mlt_image_rgb24;
@@ -52,6 +47,13 @@ static int transitionGetImage(mlt_frame aFrame, uint8_t **image, mlt_image_forma
     int bWidth = 0, bHeight = 0;
     if ((error = mlt_frame_get_image(bFrame, &bImage, format, &bWidth, &bHeight, 0)) != 0)
         return error;
+
+    // Add mlt_profile_scale_width and mlt_profile_scale_height properties for scripts.
+    mlt_profile profile = mlt_service_profile(MLT_TRANSITION_SERVICE(transition));
+    double scale = mlt_profile_scale_width(profile, *width);
+    mlt_properties_set_double(properties, "mlt_profile_scale_width", scale);
+    mlt_properties_set_double(properties, "mlt_profile_scale_height",
+                              mlt_profile_scale_height(profile, *height));
 
     { // Scope the lock
         MLTWebVfx::ServiceLocker locker(MLT_TRANSITION_SERVICE(transition));
@@ -77,7 +79,7 @@ static int transitionGetImage(mlt_frame aFrame, uint8_t **image, mlt_image_forma
         if (!consumer || !mlt_consumer_is_stopped(consumer)) {
             manager->render(&renderedImage,
                             position, length,
-                            mlt_frame_resolution_scale(aFrame));
+                            scale);
         }
     }
 
