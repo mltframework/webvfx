@@ -1,3 +1,11 @@
+# IMPORTANT
+
+THIS PROJECT IS DEPRECATED BY THE MLT TEAM AND NO LONGER MAINTAINED.
+
+The QtWebKit library it uses was deprecated by the Qt project since 2015. We are aware of the GitHub project to keep
+the library alive. However, we no longer want to maintain this sub-project due to minimal resources and lack of
+contribution. Also, the integration of QtWebKit into Qt 6 is uncertain.
+
 # Overview
 
 WebVfx is a video effects library that allows effects to be implemented using [WebKit HTML](http://trac.webkit.org/wiki/QtWebKit) or [Qt QML](http://doc.qt.io/qt-5/qmlapplications.html).
